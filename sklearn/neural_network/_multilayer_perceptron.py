@@ -388,11 +388,11 @@ class BaseMultilayerPerceptron(BaseEstimator, metaclass=ABCMeta):
         if self.solver in _STOCHASTIC_SOLVERS:
             self.loss_curve_ = []
             self._no_improvement_count = 0
-            if self.early_stopping:
-                self.validation_scores_ = []
-                self.best_validation_score_ = -np.inf
-            else:
-                self.best_loss_ = np.inf
+            #if self.early_stopping:
+            self.validation_scores_ = []
+            self.best_validation_score_ = -np.inf
+            #else:
+            self.best_loss_ = np.inf
 
     def _init_coef(self, fan_in, fan_out, dtype):
         # Use the initialization method recommended by
@@ -567,23 +567,21 @@ class BaseMultilayerPerceptron(BaseEstimator, metaclass=ABCMeta):
                 )
 
         # early_stopping in partial_fit doesn't make sense
+        
+        # make x_val and y_val available even when now early stopping is used
         early_stopping = self.early_stopping and not incremental
-        if early_stopping:
-            # don't stratify in multilabel classification
-            should_stratify = is_classifier(self) and self.n_outputs_ == 1
-            stratify = y if should_stratify else None
-            X, X_val, y, y_val = train_test_split(
-                X,
-                y,
-                random_state=self._random_state,
-                test_size=self.validation_fraction,
-                stratify=stratify,
-            )
-            if is_classifier(self):
-                y_val = self._label_binarizer.inverse_transform(y_val)
-        else:
-            X_val = None
-            y_val = None
+        # don't stratify in multilabel classification
+        should_stratify = is_classifier(self) and self.n_outputs_ == 1
+        stratify = y if should_stratify else None
+        X, X_val, y, y_val = train_test_split(
+            X,
+            y,
+            random_state=self._random_state,
+            test_size=self.validation_fraction,
+            stratify=stratify,
+        )
+        if is_classifier(self):
+            y_val = self._label_binarizer.inverse_transform(y_val)
 
         n_samples = X.shape[0]
         sample_idx = np.arange(n_samples, dtype=int)
@@ -637,6 +635,7 @@ class BaseMultilayerPerceptron(BaseEstimator, metaclass=ABCMeta):
 
                 self.t_ += n_samples
                 self.loss_curve_.append(self.loss_)
+                self.validation_scores_.append(self.score(X_val, y_val))
                 if self.verbose:
                     print("Iteration %d, loss = %.8f" % (self.n_iter_, self.loss_))
 
