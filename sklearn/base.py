@@ -626,13 +626,13 @@ class ClassifierMixin:
         score : float
             Mean accuracy of ``self.predict(X)`` wrt. `y`.
         """
-        ## RETURN LOG LOSS INSTEAD OF ACCURACY
-        ##from .metrics import accuracy_score
+        ## RETURN LOG LOSS INSTEAD OF ACCURACY DOES NOT WORK
+        from .metrics import accuracy_score
 
-        ##return accuracy_score(y, self.predict(X), sample_weight=sample_weight)
-        from .metrics import log_loss
+        return accuracy_score(y, self.predict(X), sample_weight=sample_weight)
+        #from .metrics import log_loss
 
-        return log_loss(y, self.predict(X), sample_weight=sample_weight)
+        #return log_loss(y, self.predict(X), sample_weight=sample_weight)
 
     def _more_tags(self):
         return {"requires_y": True}
